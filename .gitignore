@@ -1,0 +1,4 @@
+*.lst
+*.img
+cmake-build*/
+.idea/
