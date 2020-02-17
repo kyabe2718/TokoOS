@@ -23,10 +23,10 @@ ipl:
     mov [BOOT.DRIVE], dl; ブートドライブを保存
 
     ; 1文字表示
-    ;mov al, 'A'     ; 表示する1文字を指定
-    ;mov ah, 0x0E    ; テレタイプ式一文字出力
-    ;mov bx, 0x0000  ; ページ番号と文字色を0に設定
-    ;int 0x10        ; ビデオBIOSコール
+    mov al, 'A'     ; 表示する1文字を指定
+    mov ah, 0x0E    ; テレタイプ式一文字出力
+    mov bx, 0x0000  ; ページ番号と文字色を0に設定
+    int 0x10        ; ビデオBIOSコール
 
     ; 処理の終了
     jmp $   ; while(1)
