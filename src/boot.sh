@@ -12,5 +12,11 @@ filename=$1
 target=${filename%.*}
 
 /usr/bin/nasm $filename -o ${target}.img -l ${target}.lst
+
+if [[ $? != 0 ]]; then
+    echo "nasm error"
+    exit 1
+fi
+
 qemu-system-i386 -rtc base=localtime -drive file=$filename,format=raw -boot order=c
 
