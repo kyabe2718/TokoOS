@@ -25,16 +25,25 @@ ipl:
 
     mov [BOOT.DRIVE], dl; ブートドライブを保存
 
-    ;cdecl putc, word 'A'
+    cdecl itoa, 8086, .buf, 8, 10, 0b0001
+    cdecl puts, .buf
 
-    cdecl puts, .BootMessage
+    cdecl itoa, 8086, .buf, 8, 10, 0b0011
+    cdecl puts, .buf
 
+
+    cdecl itoa, -8086, .buf, 8, 10, 0b0001
+    cdecl puts, .buf
+
+    cdecl itoa, -8086, .buf, 8, 10, 0b0011
+    cdecl puts, .buf
 
     ; 処理の終了
     jmp $   ; while(1)
 
 
-.BootMessage db "Booting...", 0x0A, 0x0D, 0 ; 0x0AはLF, 0x0DはCR
+.BootMessage: db "Booting...", 0x0A, 0x0D, 0 ; 0x0AはLF, 0x0DはCR
+.buf: db "--------", 0x0A, 0x0D, 0
 
 ALIGN 2, db 0
 BOOT:
