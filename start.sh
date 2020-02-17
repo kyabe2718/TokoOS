@@ -5,10 +5,9 @@ SCRIPT_DIR=$(cd $(dirname $0); pwd)
 filename=src/boot.asm
 target=${filename%.*}
 
-echo $filename
-echo $target
+echo $SCRIPT_DIR
 
-/usr/bin/nasm $filename -o ${target}.img -l ${target}.lst
+/usr/bin/nasm -i${SCRIPT_DIR}/ $filename -o ${target}.img -l ${target}.lst
 
 if [[ $? != 0 ]]; then
     echo "nasm error"
