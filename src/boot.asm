@@ -25,18 +25,12 @@ ipl:
 
     mov [BOOT.DRIVE], dl; ブートドライブを保存
 
+    cdecl puts, .BootMessage
+
     cdecl itoa, 8086, .buf, 8, 10, 0b0001
     cdecl puts, .buf
 
-    cdecl itoa, 8086, .buf, 8, 10, 0b0011
-    cdecl puts, .buf
-
-
-    cdecl itoa, -8086, .buf, 8, 10, 0b0001
-    cdecl puts, .buf
-
-    cdecl itoa, -8086, .buf, 8, 10, 0b0011
-    cdecl puts, .buf
+    cdecl reboot
 
     ; 処理の終了
     jmp $   ; while(1)
@@ -52,6 +46,7 @@ BOOT:
 
 ; モジュール
 %include "modules/real/libio.asm"
+%include "modules/real/libsystem.asm"
 
     ; boot flag
     times   510 - ($ - $$) db 0x00  ;
