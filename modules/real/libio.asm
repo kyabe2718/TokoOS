@@ -26,7 +26,6 @@ putc:
 
 
 puts:
-
     push bp
     mov bp, sp
 
