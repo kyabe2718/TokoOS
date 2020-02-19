@@ -57,13 +57,13 @@ itoa:   ; (value, buf, size, word flag)
         dec di
 
         cmp ax, 0
-        loopnz .LOOP1   ; cx(ecx)をカウンタとしてデクリメントし，cx!=0かつZF=0の場合にジャンプ
+    loopnz .LOOP1   ; cx(ecx)をカウンタとしてデクリメントし，cx!=0かつZF=0の場合にジャンプ
 
      ; 空欄を埋める
      cmp cx, 0
      je .END4
         mov al, ' '
-        cmp [bp+12], word 0b100
+        cmp [bp + 12], word 0b0100
         jne .END5
         mov al, '0'
         .END5:

@@ -67,10 +67,15 @@ BOOT:
     times   510 - ($ - $$) db 0x00  ;
     db      0x55, 0xAA              ; BIOSの開始フラグ
 
+; リアルモード時に取得した情報
+FONT:
+.seg: dw 0
+.off: dw 0
 
 ; 最初の512bytesに含めなくてもよいモジュール
 %include "modules/real/itoa.asm"
 %include "modules/real/get_drive_param.asm"
+%include "modules/real/get_font_adr.asm"
 
 stage_2:
     cdecl puts,  .Message
@@ -85,24 +90,40 @@ stage_2:
 
     ; ドライブ情報の表示
     mov ax, [BOOT + drive.no]
-    cdecl itoa, ax, .p2, 2, 16, 0x0100
+    cdecl itoa, ax, .p2, 2, 16, 0b0100
     mov ax, [BOOT + drive.cyln]
-    cdecl itoa, ax, .p3, 4, 16, 0x0100
+    cdecl itoa, ax, .p3, 4, 16, 0b0100
     mov ax, [BOOT + drive.head]
-    cdecl itoa, ax, .p4, 2, 16, 0x0100
+    cdecl itoa, ax, .p4, 2, 16, 0b0100
     mov ax, [BOOT + drive.sect]
-    cdecl itoa, ax, .p5, 2, 16, 0x0100
-
+    cdecl itoa, ax, .p5, 2, 16, 0b0100
     cdecl puts, .p1
 
-    jmp $
+    jmp stage_3rd
 
 .p1: db " Drive:0x"
 .p2: db "  , C:0x"
 .p3: db "    , H:0x"
 .p4: db "  , S:0x"
 .p5: db "  ", 0x0A, 0x0D, 0
-
 .Message: db"2nd Stage...", 0x0A, 0x0D, 0
 .GetDriveParameterError: db"Can't get drive parameter", 0x0A, 0x0D, 0
-    times   BOOT_SIZE - ($ - $$) db 0x00  ;8Kバイト
+
+stage_3rd:
+    cdecl puts, .Message
+
+    cdecl get_font_adr, FONT
+
+    cdecl itoa, word[FONT.seg], .p1, 4, 16, 0b0100
+    cdecl itoa, word[FONT.off], .p2, 4, 16, 0b0100
+    cdecl puts, .s1
+
+    jmp $
+
+.Message: db"3rd Stage...", 0x0A, 0x0D, 0
+.s1: db" Font Address="
+.p1: db"    :"
+.p2: db"    ", 0x0A, 0x0D, 0
+
+
+times   BOOT_SIZE - ($ - $$) db 0x00  ;8Kバイト
