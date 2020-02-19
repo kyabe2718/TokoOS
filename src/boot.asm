@@ -58,20 +58,51 @@ BOOT:
        at  drive.sect,    dw 2 ; セクタは1-index
     iend
 
-; モジュール
-%include "modules/real/libio.asm"
-%include "modules/real/libsystem.asm"
+; 最初の512bytesに含めるモジュール
+%include "modules/real/puts.asm"
+%include "modules/real/reboot.asm"
+%include "modules/real/read_chs.asm"
 
     ; boot flag
     times   510 - ($ - $$) db 0x00  ;
     db      0x55, 0xAA              ; BIOSの開始フラグ
 
 
+; 最初の512bytesに含めなくてもよいモジュール
+%include "modules/real/itoa.asm"
+%include "modules/real/get_drive_param.asm"
+
 stage_2:
     cdecl puts,  .Message
 
-    jmp $   ; while(1)
+    ; ドライブ情報を取得
+    cdecl get_drive_param, BOOT
+    cmp ax, 0
+    jne .10E
+    cdecl puts, .GetDriveParameterError
+    call reboot
+    .10E:
+
+    ; ドライブ情報の表示
+    mov ax, [BOOT + drive.no]
+    cdecl itoa, ax, .p2, 2, 16, 0x0100
+    mov ax, [BOOT + drive.cyln]
+    cdecl itoa, ax, .p3, 4, 16, 0x0100
+    mov ax, [BOOT + drive.head]
+    cdecl itoa, ax, .p4, 2, 16, 0x0100
+    mov ax, [BOOT + drive.sect]
+    cdecl itoa, ax, .p5, 2, 16, 0x0100
+
+    cdecl puts, .p1
+
+    jmp $
+
+.p1: db " Drive:0x"
+.p2: db "  , C:0x"
+.p3: db "    , H:0x"
+.p4: db "  , S:0x"
+.p5: db "  ", 0x0A, 0x0D, 0
 
 .Message: db"2nd Stage...", 0x0A, 0x0D, 0
-
+.GetDriveParameterError: db"Can't get drive parameter", 0x0A, 0x0D, 0
     times   BOOT_SIZE - ($ - $$) db 0x00  ;8Kバイト
