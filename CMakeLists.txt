@@ -26,7 +26,7 @@ function(add_bochs_target name)
     # 生成したconfigファイルを用いてbochsを起動
     add_custom_target(
         bochs_${name}
-        COMMAND /usr/bin/bochs -q -f ${BOCHSRC_FILE} -rc ${CMAKE_CURRENT_LIST_DIR}/config/cmd.init
+        COMMAND bochs -q -f ${BOCHSRC_FILE} -rc ${CMAKE_CURRENT_LIST_DIR}/config/cmd.init
         DEPENDS ${name}_img
         DEPENDS ${BOCHSRC_FILE}
     )

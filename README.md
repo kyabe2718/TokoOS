@@ -8,9 +8,6 @@
     * Ubuntu18.04.4 LTS
     * Linux Kernel 5.3.0-28-generic
     
-# 作業日誌
-
-## 2/16
 
 
 

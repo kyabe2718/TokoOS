@@ -80,6 +80,7 @@ ACPI_DATA:
 %include "modules/real/get_drive_param.asm"
 %include "modules/real/get_font_adr.asm"
 %include "modules/real/get_mem_info.asm"
+%include "modules/real/kbc.asm"
 
 stage_2:
     cdecl puts,  .Message
@@ -138,8 +139,7 @@ stage_3rd:
     cdecl puts, .s2
 .10E:
 
-    cdecl puts, EndMessage
-    jmp $
+    jmp stage_4
 
 .Message: db"3rd Stage...", 0x0A, 0x0D, 0
 
@@ -151,8 +151,42 @@ stage_3rd:
 .p3: db"    "
 .p4: db"    ", 0x0A, 0x0D, 0
 
+stage_4:
+    cdecl puts, .Message
+
+    ; A20の有効化
+    cli ; 割り込み禁止
+
+    cdecl KBC_Cmd_Write, 0xAD ; disable keyboard
+
+    cdecl KBC_Cmd_Write, 0xD0 ; read from input
+    cdecl KBC_Data_Read, .key ; get data
+
+    mov bl, [.key]
+    or bl, 0x02
+
+    cdecl KBC_Data_Write, bx  ;
+    cdecl KBC_Cmd_Write, 0xD1 ; write to output
+
+    cdecl KBC_Cmd_Write, 0xAE ; enable keyboard
+
+    sti ; 割り込み許可
+
+    cdecl puts, .Enabled
+    cdecl puts, EndMessage
+
+    jmp $
+
+.Message: db"4th Stage...", 0x0A, 0x0D, 0
+.Enabled: db" A20 Gate Enabled.", 0x0A, 0x0D, 0
+
+.key: dw 0
+
+.buf: db "        ", 0x0A, 0x0D, 0
 
 EndMessage: db "End...", 0x0A, 0x0D, 0
 
+
+; パディング
 times   BOOT_SIZE - ($ - $$) db 0x00  ;8Kバイト
 
