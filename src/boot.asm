@@ -71,11 +71,15 @@ BOOT:
 FONT:
 .seg: dw 0
 .off: dw 0
+ACPI_DATA:
+.adr: dd 0
+.len: dd 0
 
 ; 最初の512bytesに含めなくてもよいモジュール
 %include "modules/real/itoa.asm"
 %include "modules/real/get_drive_param.asm"
 %include "modules/real/get_font_adr.asm"
+%include "modules/real/get_mem_info.asm"
 
 stage_2:
     cdecl puts,  .Message
@@ -112,18 +116,43 @@ stage_2:
 stage_3rd:
     cdecl puts, .Message
 
+    ; BIOSのフォントアドレスの取得
     cdecl get_font_adr, FONT
 
+    ; フォントアドレスの表示
     cdecl itoa, word[FONT.seg], .p1, 4, 16, 0b0100
     cdecl itoa, word[FONT.off], .p2, 4, 16, 0b0100
     cdecl puts, .s1
 
+    ; メモリ情報の取得と表示
+    cdecl get_mem_info
+
+    mov eax, [ACPI_DATA.adr]
+    cmp eax, 0
+    je .10E
+
+    cdecl itoa, ax, .p4, 4, 16, 0b0100
+    shr eax, 16
+    cdecl itoa, ax, .p3, 4, 16, 0b0100
+
+    cdecl puts, .s2
+.10E:
+
+    cdecl puts, EndMessage
     jmp $
 
 .Message: db"3rd Stage...", 0x0A, 0x0D, 0
+
 .s1: db" Font Address="
 .p1: db"    :"
 .p2: db"    ", 0x0A, 0x0D, 0
 
+.s2: db" ACPI data="
+.p3: db"    "
+.p4: db"    ", 0x0A, 0x0D, 0
+
+
+EndMessage: db "End...", 0x0A, 0x0D, 0
 
 times   BOOT_SIZE - ($ - $$) db 0x00  ;8Kバイト
+
