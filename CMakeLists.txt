@@ -3,15 +3,30 @@ cmake_minimum_required(VERSION 3.0)
 enable_language(ASM_NASM)
 project(TinyOS ASM_NASM)
 
-function(add_bootable_image name source)
-    # img fileを作成
-    add_custom_command(
-        OUTPUT ${name}.img
-        COMMAND ${CMAKE_ASM_NASM_COMPILER} -i${CMAKE_CURRENT_LIST_DIR}/ ${source} -o ${name}.img -l ${name}.lst
-        DEPENDS ${source}
+function(add_bootable_image name) #source...
+
+    set(CAT_COMMAND cat)
+
+    foreach(src ${ARGN})
+        get_filename_component(n ${src} NAME_WE)
+        add_custom_target(
+            ${n}.bin
+            COMMAND ${CMAKE_ASM_NASM_COMPILER} -i${CMAKE_CURRENT_LIST_DIR}/ ${src} -o ${n}.bin -l ${n}.lst
+            DEPENDS ${src}
+        )
+
+        set(CAT_COMMAND "${CAT_COMMAND} ${n}.bin")
+    endforeach()
+
+    add_custom_target(
+        ${name}_img
+        COMMAND /bin/sh -c ${CAT_COMMAND} > ${name}.img
     )
 
-    add_custom_target(${name}_img  DEPENDS ${name}.img)
+    foreach(src ${ARGN})
+        get_filename_component(n ${src} NAME_WE)
+        add_dependencies(${name}_img ${n}.bin)
+    endforeach()
 endfunction()
 
 function(add_bochs_target name)
@@ -32,5 +47,5 @@ function(add_bochs_target name)
     )
 endfunction()
 
-add_bootable_image(boot ${CMAKE_CURRENT_LIST_DIR}/src/boot.asm)
+add_bootable_image(boot ${CMAKE_CURRENT_LIST_DIR}/src/boot.asm ${CMAKE_CURRENT_LIST_DIR}/src/kernel.asm)
 add_bochs_target(boot)

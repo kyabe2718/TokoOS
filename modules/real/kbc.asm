@@ -37,8 +37,8 @@ KBC_Data_Read: ; (data)
 
 .10L:
     in   al, 0x64
-    test al, 0x01 ; readable?
-    loopz .10L
+    test al, 0x01 ; バッファに値があれば1
+    loopz .10L ; readable?
 
     cmp cx, 0
     jz .20E

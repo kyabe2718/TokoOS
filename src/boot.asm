@@ -81,6 +81,7 @@ ACPI_DATA:
 %include "modules/real/get_font_adr.asm"
 %include "modules/real/get_mem_info.asm"
 %include "modules/real/kbc.asm"
+%include "modules/real/read_lba.asm"
 
 stage_2:
     cdecl puts,  .Message
@@ -173,16 +174,49 @@ stage_4:
     sti ; 割り込み許可
 
     cdecl puts, .Enabled
-    cdecl puts, EndMessage
 
-    jmp $
+    jmp stage_5
 
 .Message: db"4th Stage...", 0x0A, 0x0D, 0
 .Enabled: db" A20 Gate Enabled.", 0x0A, 0x0D, 0
 
 .key: dw 0
 
-.buf: db "        ", 0x0A, 0x0D, 0
+stage_5:
+    cdecl puts, .Message
+
+    cdecl read_lba, BOOT, BOOT_SECT, KERNEL_SECT, BOOT_END
+    cmp ax, KERNEL_SECT
+    jz .10E
+    cdecl puts, .Error
+    call reboot
+    .10E:
+
+    jmp stage_6
+
+.Message: db"5th Stage...", 0x0A, 0x0D, 0
+.Error: db"Failed to load kernel...", 0x0A, 0x0D, 0
+
+stage_6:
+    cdecl puts, .Message
+
+    cdecl puts, .KeyWait
+
+    ; キー入力待ち（space）
+    .10L:
+    mov ah, 0x00
+    int 0x16
+    cmp al, ' '
+    jne .10L
+
+    ; ビデオモードの設定
+    mov ax, 0x0012
+    int 0x10
+
+    jmp $
+
+.Message: db"6th Stage...", 0x0A, 0x0D, 0
+.KeyWait: db"Please press space key to change to video mode...", 0x0A, 0x0D, 0
 
 EndMessage: db "End...", 0x0A, 0x0D, 0
 
