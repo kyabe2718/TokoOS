@@ -70,8 +70,8 @@ BOOT:
 
 ; リアルモード時に取得した情報
 FONT:
-.seg: dw 0  ; ワード 2byte
-.off: dw 0
+.seg: dw 0  ; セグメント ワード 2byte
+.off: dw 0  ; オフセット
 ACPI_DATA:
 .adr: dd 0  ; ダブルワード 4byte=32bit
 .len: dd 0
@@ -201,14 +201,14 @@ stage_5:
 stage_6:
     cdecl puts, .Message
 
-    cdecl puts, .KeyWait
-
-    ; キー入力待ち（space）
-    .10L:
-    mov ah, 0x00
-    int 0x16
-    cmp al, ' '
-    jne .10L
+;    cdecl puts, .KeyWait
+;
+;    ; キー入力待ち（space）
+;    .10L:
+;    mov ah, 0x00
+;    int 0x16
+;    cmp al, ' '
+;    jne .10L
 
     ; ビデオモードの設定
     mov ax, 0x0012
