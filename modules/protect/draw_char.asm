@@ -46,3 +46,48 @@ draw_char: ; (row, col ,color, ch)
     pop ebp
     ret
 
+; \param row 列 + 8
+; \param col 行 + 12
+draw_font:  ; (row, col)
+    push ebp        ; + 4
+    mov ebp, esp    ; + 0
+
+    push esi
+    push edi
+    push eax
+    push ebx
+    push ecx
+    push edx
+
+    mov esi, [ebp + 8]
+    mov edi, [ebp + 12]
+
+    mov ecx, 0
+.10L:
+    cmp ecx, 256
+    jae .10E
+
+    mov eax, ecx
+    and eax, 0x0F   ; 16x16で表示するため，eaxのhex表示で下一桁を列に
+    add eax, esi
+
+    mov ebx, ecx
+    shr ebx, 4  ; hex表示で二桁目
+    add ebx, edi
+
+    cdecl draw_char, eax, ebx, 0x0007, ecx
+
+    inc ecx
+    jmp .10L
+.10E:
+
+    pop edx
+    pop ecx
+    pop ebx
+    pop eax
+    pop edi
+    pop esi
+
+    mov esp, ebp
+    pop ebp
+    ret

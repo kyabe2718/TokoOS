@@ -4,6 +4,7 @@
 vga_set_read_plane:
     push ebp
     mov ebp, esp
+    push eax
     push edx
 
     mov ah, [ebp + 8]
@@ -13,6 +14,7 @@ vga_set_read_plane:
     out dx, ax
 
     pop edx
+    pop eax
     mov esp, ebp
     pop ebp
     ret
@@ -23,6 +25,7 @@ vga_set_read_plane:
 vga_set_write_plane:
     push ebp
     mov ebp, esp
+    push eax
     push edx
 
     mov ah, [ebp + 8]
@@ -32,6 +35,7 @@ vga_set_write_plane:
     out dx, ax
 
     pop edx
+    pop eax
     mov esp, ebp
     pop ebp
     ret
@@ -41,7 +45,7 @@ vga_set_write_plane:
 ; \param font フォントアドレス                  ; + 8
 ; \param vram VRAMアドレス                      ; + 12
 ; \param plane 出力プレーン 下位1byteのみ有効   ; + 16
-; \param color 描画色       下位2byte（背景色:前景色）のみ有効   ; + 20
+; \param color 描画色       （背景色2byte:前景色2byte）   ; + 20
 vram_font_copy: ; (font, vram, plane, color)
     push ebp        ; + 4
     mov ebp, esp    ; + 0
@@ -50,6 +54,7 @@ vram_font_copy: ; (font, vram, plane, color)
     push edi
     push eax
     push ebx
+    push ecx
     push edx
 
     mov esi, [ebp + 8]  ; font
@@ -93,6 +98,7 @@ vram_font_copy: ; (font, vram, plane, color)
     loop .10L   ; while(--ecx)
 
     pop edx
+    pop ecx
     pop ebx
     pop eax
     pop edi
