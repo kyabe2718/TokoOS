@@ -6,13 +6,14 @@
 ; BIOSはブートプログラムをBOOT_LOAD(0x7C00)に展開するので，それをアセンブラに指示
 ORG BOOT_LOAD
 
+; BIOS Parameter Block
 entry:
-    ; BIOS Parameter Block
     ; とりあえず90バイトのNOP
     jmp  ipl  ; iplへ
     times   90 - ($ - $$) db 0x90  ; 0x90はnop命令
 
-    ; Initial Program Loader
+; Initial Program Loader
+; スタックポインタとレジスタの設定をし，残りのセクタを読み込む
 ipl:
     ; スタックポインタや割り込みの設定をしている最中に割り込みされると上手く動かない
     cli     ; 割り込みの禁止
@@ -49,7 +50,7 @@ ipl:
 .BootMessage: db "Boot...", 0x0A, 0x0D, 0 ; 0x0AはLF, 0x0DはCR
 .SectorReadError: db "Error:sector read", 0 ; 0x0AはLF, 0x0DはCR
 
-ALIGN 2, db 0
+ALIGN 2, db 0   ; データ境界を2byte(word)に．空き領域を0埋め
 BOOT:
     istruc drive
        at  drive.no,      dw 0
@@ -63,16 +64,16 @@ BOOT:
 %include "modules/real/reboot.asm"
 %include "modules/real/read_chs.asm"
 
-    ; boot flag
+; パディングとboot flag
     times   510 - ($ - $$) db 0x00  ;
     db      0x55, 0xAA              ; BIOSの開始フラグ
 
 ; リアルモード時に取得した情報
 FONT:
-.seg: dw 0
+.seg: dw 0  ; ワード 2byte
 .off: dw 0
 ACPI_DATA:
-.adr: dd 0
+.adr: dd 0  ; ダブルワード 4byte=32bit
 .len: dd 0
 
 ; 最初の512bytesに含めなくてもよいモジュール
@@ -213,13 +214,65 @@ stage_6:
     mov ax, 0x0012
     int 0x10
 
-    jmp $
+    jmp stage_7
 
 .Message: db"6th Stage...", 0x0A, 0x0D, 0
 .KeyWait: db"Please press space key to change to video mode...", 0x0A, 0x0D, 0
 
-EndMessage: db "End...", 0x0A, 0x0D, 0
+ALIGN 4, db 0   ; データ境界を4byteに．空き領域を0埋め
 
+; グローバルセグメントディスクリプタテーブル
+GDT: dq 0x00_0000_000000_0000   ; NULL
+.cs: dq 0x00_CF9A_000000_FFFF   ; コード領域用セグメントディスクリプタ．サイズ4GByte（0xFFFF_FFFFまで）．特権レベル0．実効/読み取り可
+.ds: dq 0x00_CF92_000000_FFFF   ; データ領域用セグメントディスクリプタ．サイズ4GByte（0xFFFF_FFFFまで）．特権レベル0．読み取り/書き込み可
+.gdt_end:
+
+SEL_CODE equ .cs - GDT  ; コード用セレクタ
+SEL_DATA equ .ds - GDT  ; データ用セレクタ
+
+GDTR:   dw  GDT.gdt_end - GDT - 1
+        dd  GDT
+
+IDTR:   dw  0
+        dd  0
+
+stage_7:
+
+    cli
+
+    lgdt [GDTR] ; グローバルディスクリプタテーブルを設定
+    lidt [IDTR] ; 割り込みディスクリプタテーブルを設定
+
+    ; プロテクトモードへ移行
+    mov eax, cr0
+    or  ax, 1
+    mov cr0, eax
+
+    ; リアルモードからプロテクトモードに移行するので，命令パイプラインをクリアする．（jmp命令の副次効果らしい）
+    jmp $ + 2
+
+[BITS 32]
+    DB 0x66     ; まだCPUは16bitで動いているので，それを32bitで動くように上書き
+    jmp SEL_CODE:CODE_32    ; セグメント間ジャンプ．先程設定した命令用セグメントディスクリプタがセグメントレジスタに
+
+CODE_32:
+    ; セレクタを初期化
+    mov ax, SEL_DATA
+    mov ds, ax
+    mov es, ax
+    mov fs, ax
+    mov gs, ax
+    mov ss, ax
+
+    ; BOOT_END後にカーネル部が並べられるが，これをKERNEL_LOADからに並べ直す
+    mov ecx, (KERNEL_SIZE) / 4
+    mov esi, BOOT_END
+    mov edi, KERNEL_LOAD
+    cld
+    rep movsd
+
+    ; カーネルの先頭にジャンプ
+    jmp KERNEL_LOAD
 
 ; パディング
 times   BOOT_SIZE - ($ - $$) db 0x00  ;8Kバイト
