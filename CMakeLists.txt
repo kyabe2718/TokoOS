@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.0)
 
 enable_language(ASM_NASM)
-project(TinyOS ASM_NASM)
+project(TokoOS ASM_NASM)
 
 function(add_bootable_image name) #source...
 
