@@ -107,3 +107,49 @@ vram_font_copy: ; (font, vram, plane, color)
     mov esp, ebp
     pop ebp
     ret
+
+
+
+; \brief ビットデータをvramに書き込む
+; \param pattern 入力ビットパターン             ; + 8
+; \param vram VRAMアドレス                      ; + 12
+; \param plane 出力プレーン 下位1byteのみ有効   ; + 16
+; \param color 描画色       （背景色2byte:前景色2byte）   ; + 20
+vram_bit_copy: ; (pattern, vram, plane, color)
+    push ebp        ; + 4
+    mov ebp, esp    ; + 0
+
+    push esi
+    push edi
+    push eax
+    push ebx
+    push ecx
+    push edx
+
+    mov edi, [ebp + 12] ; vram
+    movzx eax, byte[ebp + 16]
+    movzx ebx, word[ebp + 20]
+
+    test bl, al ; zf = 前景色 & プレーン
+    setz bl     ; dl = zf ? 0x01 : 0x00
+    dec bl      ; 0x00 or 0xFF
+
+    mov al, [ebp + 8]   ; pattern
+    mov ah, al
+    not ah  ; ah ~= al
+
+    and ah, [edi]   ; ah = 出力ビットパターン & 現在値
+    and al, bl      ; al = !出力ビットパターン & 表示色
+    or al, ah
+    mov [edi], al
+
+    pop edx
+    pop ecx
+    pop ebx
+    pop eax
+    pop edi
+    pop esi
+
+    mov esp, ebp
+    pop ebp
+    ret
