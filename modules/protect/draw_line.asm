@@ -98,7 +98,6 @@ draw_line:
     loop .50L
 .50E:
 
-
     mov esp, ebp
     pop ebp
     ret

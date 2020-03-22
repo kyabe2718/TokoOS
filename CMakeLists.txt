@@ -47,5 +47,15 @@ function(add_bochs_target name)
     )
 endfunction()
 
+function(add_qemu_target name)
+    # 生成したconfigファイルを用いてbochsを起動
+    add_custom_target(
+            qemu_${name}
+            COMMAND qemu-system-i386 -rtc base=localtime -drive file=${CMAKE_CURRENT_BINARY_DIR}/${name}.img,format=raw -boot order=c
+            DEPENDS ${name}_img
+    )
+endfunction()
+
 add_bootable_image(boot ${CMAKE_CURRENT_LIST_DIR}/src/boot.asm ${CMAKE_CURRENT_LIST_DIR}/src/kernel.asm)
 add_bochs_target(boot)
+add_qemu_target(boot)
