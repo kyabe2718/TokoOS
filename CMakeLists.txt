@@ -30,12 +30,14 @@ function(add_bootable_image name) #source...
 endfunction()
 
 function(add_bochs_target name)
-    set(BOCHSRC_FILE ${CMAKE_CURRENT_BINARY_DIR}/bochs_${name}.bxrc)
+    set(BOCHSRC_FILE ${CMAKE_CURRENT_BINARY_DIR}/bochs_${name}.bxrc) # bochsのconfigファイルの出力先
+    set(BOCHSRC_TEMPLATE ${CMAKE_CURRENT_LIST_DIR}/config/mkbochsrc.sh) # bochsのconfigファイルを作るテンプレート
 
     # ${name}.imgをloadするimg fileとしたconfigファイルを生成
     add_custom_command(
         OUTPUT ${BOCHSRC_FILE}
-        COMMAND /bin/sh ${CMAKE_CURRENT_LIST_DIR}/config/mkbochsrc.sh ${CMAKE_CURRENT_BINARY_DIR}/${name}.img > ${BOCHSRC_FILE}
+        COMMAND /bin/sh ${BOCHSRC_TEMPLATE} ${CMAKE_CURRENT_BINARY_DIR}/${name}.img > ${BOCHSRC_FILE}
+        DEPENDS ${BOCHSRC_TEMPLATE}
     )
 
     # 生成したconfigファイルを用いてbochsを起動

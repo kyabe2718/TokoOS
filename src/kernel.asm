@@ -24,7 +24,13 @@ kernel:
     cdecl itoa, 1234, .s1, 5, 10, 0b100
     cdecl draw_str, 25, 16, 0x010F, .s1
 
-    jmp $
+.10L:
+    cdecl rtc_get_time, RTC_TIME
+    cdecl draw_time, 72, 0, 0x0700, dword[RTC_TIME]
+
+    jmp .10L
+
+;    jmp $
 
 .s0: db " Hello, Kernel! ", 0
 .s1: db "      ", 0
@@ -32,6 +38,7 @@ kernel:
 
 ALIGN 4, db 0
 FONT_ADR: dd 0
+RTC_TIME: dd 0
 
 %include "modules/protect/vga.asm"
 %include "modules/protect/draw_char.asm"
@@ -39,6 +46,8 @@ FONT_ADR: dd 0
 %include "modules/protect/draw_pixel.asm"
 %include "modules/protect/draw_line.asm"
 %include "modules/protect/itoa.asm"
+%include "modules/protect/rtc.asm"
+
 
 ; パディング
 times KERNEL_SIZE - ($ - $$) db 0
