@@ -7,6 +7,17 @@ rtc_get_time: ; (dst)
     push ebp
     mov ebp, esp
 
+    ; 時刻データが更新中や更新予定であれば失敗
+    mov al, 0x0A
+    out 0x70, al
+    in al, 0x71
+    test al, 0x80
+
+    je .10F
+    mov eax, 1
+    jmp .10E
+
+.10F:
     ; 0x70にコードを出力し，0x71から取得する
     ; コードは0x00（秒），0x02（分），0x04（時）など
 
@@ -30,6 +41,9 @@ rtc_get_time: ; (dst)
 
     mov ebx, [ebp + 8]
     mov [ebx], eax  ; *dst = 時刻
+
+    mov eax, 0
+.10E:
 
     mov esp, ebp
     pop ebp
