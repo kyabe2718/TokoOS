@@ -27,11 +27,11 @@ itoa:   ; (value, buf, size, word flag)
 
     ; 符号付き判定
     test ebx, 0b001 ; if (flags & 0x01 != 0) // 値を符号付き整数として扱う
-    je .END1       ; {
+    je .END1        ; {
     cmp eax, 0      ;     if(val < 0)        // かつ，値が負である
-    jge .END1      ;      {
+    jge .END1       ;     {
     or ebx, 0b0010  ;          flags = flags | 0x02   // なら，必ず+/-を付加する
-    .END1:         ;  }}
+    .END1:          ; }}
 
     ; 符号出力判定
     test ebx, 0b0010
@@ -66,7 +66,7 @@ itoa:   ; (value, buf, size, word flag)
      cmp ecx, 0
      je .END4
         mov al, ' '
-        cmp [ebp + 12], word 0b0100
+        cmp [ebp + 24], word 0b0100
         jne .END5
         mov al, '0'
         .END5:

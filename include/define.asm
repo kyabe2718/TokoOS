@@ -13,4 +13,5 @@ E820_RECORD_SIZE equ 20 ; BIOSから取得したメモリ情報を格納する�
 
 KERNEL_LOAD equ 0x0010_1000
 
+VECT_BASE equ 0x0010_0000   ; 1つの割り込みゲートディスクリプタは8byte，255個，0x0010_0000から0x0010_07FFまで
 

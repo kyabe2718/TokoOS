@@ -33,3 +33,31 @@ struc drive
     .head   resw 1
     .sect   resw 1
 endstruc
+
+; \brief 割り込みベクタを設定
+; \param %1 割り込みベクタ番号 (1~255)
+; \param %2 割り込みベクタに設定する関数
+%macro set_vect 1-*
+    push eax
+    push edi
+
+    mov edi, VECT_BASE + (%1 * 8)   ; 割り込みゲートディスクリプタは1個あたり8byte
+    mov eax, %2
+
+    ; 割り込み処理のアドレスのみ書き換える．他はデフォルト
+    mov [edi + 0], ax
+    shr eax, 16
+    mov [edi + 6], ax
+
+    pop edi
+    pop eax
+%endmacro
+
+; \brief 特定の番地に値を出力する
+; \param %1 出力先
+; \param %2 書き込む値（即値でもレジスタでも）
+; \note outはレジスタからしかできないので，マクロを用いて簡略化．alが使用されることに注意
+%macro outp 2
+    mov al, %2
+    out %1, al
+%endmacro

@@ -17,6 +17,22 @@ kernel:
     add eax, ebx
     mov [FONT_ADR], eax ; FONT_ADRに保存し直す
 
+    cdecl init_int  ; 割り込みベクタの初期化
+    cdecl init_pic  ; 割り込みコントローラの初期化
+
+    set_vect 0x00, int_zero_div ; 0除算の割り込みを設定
+    set_vect 0x28, int_rtc  ; RTC割り込み
+
+    ; デバイスの割り込み許可
+    cdecl rtc_int_en, 0x10  ; 更新サイクル終了割り込み許可
+
+    ; 割り込みマスクレジスタの設定
+    outp 0x21, 0b1111_1011  ; 割り込みの有効化 slave PIC
+    outp 0xA1, 0b1111_1110  ; 割り込みの有効化 RTC
+
+    sti
+
+    ; 色々描いてみる
     cdecl draw_font, 63, 13
     cdecl draw_str, 25, 14, 0x010F, .s0
     cdecl draw_line, 0, 0, 500, 100, 0x0F
@@ -24,17 +40,22 @@ kernel:
     cdecl itoa, 1234, .s1, 5, 10, 0b100
     cdecl draw_str, 25, 16, 0x010F, .s1
 
+    ; 時刻の表示
 .10L:
-    cdecl rtc_get_time, RTC_TIME
-    cdecl draw_time, 72, 0, 0x0700, dword[RTC_TIME]
-
+    mov eax, [RTC_TIME]
+    cdecl draw_time, 72, 0, 0x0700, eax
     jmp .10L
 
-;    jmp $
+;    ;割り込みでのスタックを再現してint_defaultを呼ぶ
+;    push 0x11223344 ; ダミーをpush
+;    pushf           ; EFLAGSをpush
+;    call 0x0008:int_default; far callはCSとEIPを積む
+
+
+    jmp $
 
 .s0: db " Hello, Kernel! ", 0
 .s1: db "      ", 0
-
 
 ALIGN 4, db 0
 FONT_ADR: dd 0
@@ -46,7 +67,10 @@ RTC_TIME: dd 0
 %include "modules/protect/draw_pixel.asm"
 %include "modules/protect/draw_line.asm"
 %include "modules/protect/itoa.asm"
+%include "modules/protect/interrupt.asm"
+%include "modules/protect/pic.asm"
 %include "modules/protect/rtc.asm"
+%include "modules/protect/int_rtc.asm"
 
 
 ; パディング

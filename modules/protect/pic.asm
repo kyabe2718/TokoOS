@@ -1,0 +1,20 @@
+init_pic:
+    push eax    ; outpはalを書き換える
+
+    ; master PICの設定
+    outp 0x20, 0x11 ; ICW1 割り込み検出方法: エッジ，ICの使用方法: カスケード，ICW4の設定: あり
+    outp 0x21, 0x20 ; ICW2 割り込みベクタのベース: 0x20 これに1~7を加算したものがCPUに通知されるベクタ番号
+    outp 0x21, 0x04 ;
+    outp 0x21, 0x05
+    outp 0x21, 0xFF
+
+    ; slave PICの設定
+    outp 0xA0, 0x11
+    outp 0xA1, 0x28
+    outp 0xA1, 0x02
+    outp 0xA1, 0x01
+    outp 0xA1, 0xFF
+
+    pop eax
+
+    ret
