@@ -39,11 +39,13 @@ init_int:
     pop eax
     ret
 
-; スタックの上から4つを表示して停止
-; error codeなしだと EIP, CS, EFLAGS
-; error codeありだと ERROE CODE, EIP, CS, EFLAGS
-; がスタックに積まれる
+; \brief スタックの上から4つを表示して停止
+; \note error codeなしだと EIP, CS, EFLAGS
+; \note error codeありだと ERROE CODE, EIP, CS, EFLAGS がスタックに積まれる
+; \note この関数は返らないのでレジスタ保存処理を行っていない
 int_stop:
+    sti     ; 割り込みを許可
+
     cdecl draw_str, 25, 15, 0x060F, eax
 
     mov eax, [esp + 0]
@@ -76,17 +78,18 @@ int_stop:
 
 ; デフォルトの割り込み処理
 int_default:
-    pushf
-    push cs
-    push int_stop
+    ; 以下の3つをpushしてからiretすることで，割り込み処理から抜けて目的の処理を実行
+    pushf           ; -> EFLAGS
+    push cs         ; -> CS
+    push int_stop   ; -> IP
     mov eax, .s0
     iret
 .s0: db " <    STOP    > ", 0
 
 int_zero_div:
-    pushf
-    push cs
-    push int_stop
+    pushf           ; -> EFLAGS
+    push cs         ; -> CS
+    push int_stop   ; -> IP
     mov eax, .s0
     iret
 .s0: db " <  ZERO DIV  > ", 0

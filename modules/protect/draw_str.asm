@@ -1,7 +1,7 @@
 
 ; \brief 文字列を描画
-; \param row    ebp + 8
-; \param col    ebp + 12
+; \param col    ebp + 8
+; \param row    ebp + 12
 ; \param color  描画色 ebp + 16
 ; \param str    文字列のアドレス ebp + 20
 draw_str:   ; (row, col, color, str)

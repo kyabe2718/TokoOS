@@ -27,13 +27,6 @@
 
 %endmacro
 
-struc drive
-    .no     resw 1
-    .cyln   resw 1
-    .head   resw 1
-    .sect   resw 1
-endstruc
-
 ; \brief 割り込みベクタを設定
 ; \param %1 割り込みベクタ番号 (1~255)
 ; \param %2 割り込みベクタに設定する関数
@@ -61,3 +54,20 @@ endstruc
     mov al, %2
     out %1, al
 %endmacro
+
+struc drive
+    .no     resw 1
+    .cyln   resw 1
+    .head   resw 1
+    .sect   resw 1
+endstruc
+
+%define RING_ITEM_SIZE (1 << 4)
+%define RING_INDEX_MASK (RING_ITEM_SIZE - 1)
+
+struc ring_buf
+    .rp resd 1  ; 読み出し位置
+    .wp resd 1  ; 書き込み位置
+    .item resb RING_ITEM_SIZE ; バッファ
+endstruc
+
