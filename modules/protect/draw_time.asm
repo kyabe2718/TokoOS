@@ -11,6 +11,11 @@ draw_time: ;(row, col, color, time)
     push ebx
 
     mov eax, [ebp + 20] ; 時刻データ
+    cmp eax, [.last]
+    je .10E    ; if(eax == last) return;
+
+    mov [.last], eax
+
     movzx ebx, al
     cdecl itoa, ebx, .sec, 2, 16, 0b0100
 
@@ -22,6 +27,8 @@ draw_time: ;(row, col, color, time)
 
     cdecl draw_str, dword[ebp + 8], dword[ebp + 12], dword[ebp + 16], .hour
 
+.10E:
+
     pop ebx
     pop eax
 
@@ -29,6 +36,8 @@ draw_time: ;(row, col, color, time)
     pop ebp
     ret
 
+ALIGN 2, db 0
+.last: dq 0
 .hour: db "ZZ:"
 .min:  db "ZZ:"
 .sec:  db "ZZ", 0

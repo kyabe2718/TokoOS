@@ -21,15 +21,16 @@ kernel:
     cdecl init_pic  ; 割り込みコントローラの初期化
 
     set_vect 0x00, int_zero_div ; 0除算の割り込みを設定
+    set_vect 0x20, int_timer; タイマ割り込み
     set_vect 0x21, int_keyboard ; KBC割り込み
     set_vect 0x28, int_rtc  ; RTC割り込み
 
     ; デバイスの割り込み許可
     cdecl rtc_int_en, 0x10  ; 更新サイクル終了割り込み許可
+    cdecl timer0_int_en     ; タイマーカウンタ0の割り込み許可
 
     ; 割り込みマスクレジスタの設定
-;    outp 0x21, 0b1111_1011  ; 割り込みの有効化 slave PIC
-    outp 0x21, 0b1111_1001  ; 割り込みの有効化 slave PIC / KBC
+    outp 0x21, 0b1111_1000  ; 割り込みの有効化 slave PIC / KBC / タイマ
     outp 0xA1, 0b1111_1110  ; 割り込みの有効化 RTC
 
     sti
@@ -43,6 +44,8 @@ kernel:
 .10L:
     mov eax, [RTC_TIME]
     cdecl draw_time, 72, 0, 0x0700, eax
+
+    cdecl draw_rotation_bar
 
     cdecl ring_rd, _KEY_BUF, .int_key
     cmp eax, 0
@@ -73,6 +76,8 @@ RTC_TIME: dd 0
 %include "modules/protect/int_rtc.asm"
 %include "modules/protect/ring_buf.asm"
 %include "modules/protect/int_keyboard.asm"
+%include "modules/protect/int_timer.asm"
+%include "modules/protect/draw_rotation_bar.asm"
 
 ; パディング
 times KERNEL_SIZE - ($ - $$) db 0
