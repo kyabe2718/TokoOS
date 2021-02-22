@@ -2,3 +2,4 @@
 *.img
 cmake-build*/
 .idea/
+build*/

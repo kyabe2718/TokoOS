@@ -15,7 +15,7 @@ floppy_bootsig_check: disabled=0
 # no floppya
 # no floppyb
 ata0: enabled=true, ioaddr1=0x1f0, ioaddr2=0x3f0, irq=14
-ata0-master: type=disk, path=$PATH, mode=flat, cylinders=20, heads=2, spt=16, model="Generic 1234", biosdetect=auto, translation=auto
+ata0-master: type=disk, path="$PATH", mode=flat, cylinders=20, heads=2, spt=16, model="Generic 1234", biosdetect=auto, translation=auto
 ata0-slave: type=none
 ata1: enabled=true, ioaddr1=0x170, ioaddr2=0x370, irq=15
 ata1-master: type=none
@@ -43,7 +43,7 @@ debugger_log: -
 magic_break: enabled=0
 port_e9_hack: enabled=0
 private_colormap: enabled=0
-clock: sync=none, time0=local, rtc_sync=0
+clock: sync=realtime, time0=local, rtc_sync=1
 # no cmosimage
 log: -
 logprefix: %t%e%d
